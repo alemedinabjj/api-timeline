@@ -1,20 +1,6 @@
 version: '3.1'
 services:
-  db:
-    image: postgres
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "3335:5432"
-      # Serviço do backend
   backend:
     build: .
-    depends_on:
-      - db
-    command: bash -c "npx prisma generate && npx prisma migrate dev && npm run start"
-    env_file:
-      - .env
     ports:
       - "3336:3336"
