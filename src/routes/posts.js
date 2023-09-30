@@ -249,40 +249,61 @@ server.delete('/post/:id/comments/:commentId', async (req, res) => {
 
 
   server.get('/all-posts', async (req, res) => {
-    
-      const posts = await prisma.posts.findMany({
-        orderBy: {
-          createdAt: 'desc',
+    const { page = 1, limit = 5 } = req.query;
+    const errors = {};
+  
+    if (!page) {
+      errors.pageRequired = 'Page is required';
+    }
+  
+    if (!limit) {
+      errors.limitRequired = 'Limit is required';
+    }
+  
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ errors });
+    }
+  
+    // Converter page e limit para números inteiros
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+  
+    const offset = (pageNumber - 1) * limitNumber;
+  
+    const totalPosts = await prisma.posts.count();
+    const totalPages = Math.ceil(totalPosts / limitNumber);
+  
+    const posts = await prisma.posts.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: offset,
+      take: limitNumber,
+      include: {
+        author: {
+          select: {
+            username: true,
+          },
         },
-
-        include: {
-          author: {
-            select: {
-              username: true,
-            },
+        likes: {
+          select: {
+            authorId: true,
           },
-
-          likes: {
-            select: {
-              authorId: true,
-            },
-          },
-
-          comments: {
-            include: {
-              author: {
-                select: {
-                  username: true,
-                },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                username: true,
               },
-            }
-          }
-       
+            },
+          },
         },
-      });
-
-      return res.json({ posts });
-
-  })
+      },
+    });
+  
+    return res.json({ posts, totalPages, currentPage: pageNumber });
+  });
+  
 
 export default server;
