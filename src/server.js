@@ -4,6 +4,7 @@ import postsRouter from './routes/posts.js';
 import authRouter from './routes/auth.js';
 import cors from 'cors';
 import { prisma } from './utils/prisma.js';
+import 'dotenv/config.js'
 
 const server = express()
 server.use(cors())
